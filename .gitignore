@@ -1,0 +1,33 @@
+# macOS build output
+mac/BugHunter.app
+mac/*.app
+
+# macOS system files
+.DS_Store
+**/.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode / swiftc
+*.o
+*.d
+*.swp
+.build/
+DerivedData/
+*.xcuserstate
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
