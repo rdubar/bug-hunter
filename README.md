@@ -208,7 +208,7 @@ is typically provided under CC0 or LGPL; check your distro's package for exact t
 
 ## License
 
-[MIT](LICENSE) — © 2026 Alphapet Tech Days.
+[MIT](LICENSE) — © 2026 Roger Dubar.
 
 ---
 
