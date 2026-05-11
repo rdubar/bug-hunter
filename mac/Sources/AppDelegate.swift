@@ -42,7 +42,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(item("Add Bug",    #selector(addBug)))
         menu.addItem(item("Squish All", #selector(squishAll)))
         menu.addItem(.separator())
-        menu.addItem(item("Quit Bug Hunter", #selector(NSApplication.terminate(_:))))
+        menu.addItem(item("Quit Bug Hunter", #selector(quitApp)))
         statusItem?.menu = menu
     }
 
@@ -54,6 +54,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func addBug()    { controller.addBug() }
     @objc private func squishAll() { controller.squishAll() }
+    @objc private func quitApp()   { NSApp.terminate(nil) }
 
     // MARK: - Global mouse monitor
 
