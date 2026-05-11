@@ -45,19 +45,16 @@ class BugController {
         }
     }
 
-    // Called from the global mouse monitor with NSEvent.mouseLocation (screen coords).
-    // Bug positions are in the overlay view's local coordinate space, so we must
-    // convert before comparing — otherwise multi-monitor origins break hit detection.
-    func handleClick(at screenPoint: CGPoint) {
-        guard let window = view?.window, let view = view else { return }
-        let windowPoint = window.convertPoint(fromScreen: screenPoint)
-        let localPoint  = view.convert(windowPoint, from: nil)
-
+    // NSEvent.mouseLocation and Bug.position share the same coordinate space:
+    // Cocoa screen coords (Y-up, origin at bottom-left of primary screen).
+    // BugView.isFlipped = false and the window fills the full screen at origin (0,0),
+    // so no conversion is needed — compare directly.
+    func handleClick(at point: CGPoint) {
         for bug in bugs where isAlive(bug) {
-            let d = hypot(bug.position.x - localPoint.x, bug.position.y - localPoint.y)
+            let d = hypot(bug.position.x - point.x, bug.position.y - point.y)
             if d <= bug.hitRadius {
                 doSquish(bug)
-                return           // first hit wins; no double-events
+                return
             }
             if d <= bug.nearMissRadius {
                 SoundManager.shared.playMiss()

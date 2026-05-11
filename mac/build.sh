@@ -29,6 +29,9 @@ swiftc \
     -O \
     -o "$MACOS_DIR/BugHunter"
 
+echo "→ Ad-hoc signing..."
+codesign --force --deep --sign - "$APP"
+
 echo "→ Stripping quarantine flag..."
 xattr -cr "$APP" 2>/dev/null || true
 
