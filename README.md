@@ -49,6 +49,15 @@ A prompt appears on first launch. If you missed it:
 
 Then relaunch. Without this the bug is immortal.
 
+**Privacy note:** the monitor only reads the mouse location of each click — it does
+not log keystrokes, record cursor movement, or make any network calls. Everything
+runs locally. The source is here for you to verify.
+
+**Note for distributors:** the current bundle ID (`com.bughunter.app`) is a
+placeholder. For signed/notarized releases, replace it with your own reverse-DNS
+identifier and sign with a Developer ID certificate before distributing outside
+this repo.
+
 ### Tray icon
 
 Look for 🪲 in the menu bar. Click it for Add Bug / Squish All / Quit.
@@ -123,9 +132,10 @@ windows stay usable.
 
 **macOS:** the window has `ignoresMouseEvents = true`, and a global `NSEvent` monitor
 catches every left-click on the system. This requires Accessibility permission.
+Clicks are processed entirely on-device; no data is logged or transmitted.
 
 **Linux:** GTK3 *input shapes* tell the compositor to route pointer events only to the
-small rectangle around the bug. Everything else passes through with zero system
+circular region around each bug. Everything else passes through with zero system
 permissions required — the OS handles the routing.
 
 ### Animation
@@ -177,6 +187,28 @@ Only the platform layer (window, drawing surface, sound player) differs.
 - Bugs that run away from the cursor
 - Custom sound packs
 - Linux: bugs crawl along real window edges using X11 window geometry
+
+---
+
+## Assets & open-source attribution
+
+**Graphics:** all sprites are drawn procedurally at runtime using `NSBezierPath`
+(macOS) and Cairo (Linux). No image files are included or distributed.
+
+**Sounds (macOS):** uses Apple's built-in system sounds via `NSSound(named:)`
+(`Basso`, `Tink`). These are part of macOS and require no attribution.
+
+**Sounds (Linux):** references sound files from the
+[freedesktop sound theme](https://freedesktop.org/wiki/Specifications/sound-theme-spec/)
+(`window-attention.oga`, `button-pressed.oga`) which are already installed on the
+user's system. Bug Hunter does not distribute these files. The freedesktop theme
+is typically provided under CC0 or LGPL; check your distro's package for exact terms.
+
+---
+
+## License
+
+[MIT](LICENSE) — © 2026 Alphapet Tech Days.
 
 ---
 

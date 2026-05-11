@@ -5,12 +5,30 @@ everywhere EXCEPT the bug hit area. No accessibility permission required —
 the OS routes clicks at the compositor level.
 """
 
+import math
 import cairo
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 
 from renderer import draw_bug
+
+
+def _circle_region(cx, cy, radius):
+    """Return a pixel-accurate circular cairo.Region via horizontal scan lines.
+
+    Using a geometric circle means the input-shape boundary matches the circular
+    near-miss detection radius exactly — no silent corner zones.
+    """
+    cx, cy, r = int(cx), int(cy), int(radius)
+    region = cairo.Region()
+    for dy in range(-r, r + 1):
+        dx = int(math.sqrt(max(0, r * r - dy * dy)))
+        if dx > 0:
+            region.union(cairo.Region(cairo.RectangleInt(
+                x=cx - dx, y=cy + dy, width=dx * 2, height=1,
+            )))
+    return region
 
 
 class OverlayWindow(Gtk.Window):
@@ -30,12 +48,15 @@ class OverlayWindow(Gtk.Window):
         self.set_type_hint(Gdk.WindowTypeHint.NOTIFICATION)  # overlay; not a panel
 
         # --- Geometry: primary monitor ---
+        # Use logical pixel dimensions only. GTK, Cairo, draw coords, input-shape
+        # coords, and event.x/y are all in logical pixels; multiplying by the
+        # HiDPI scale factor would make screen_w/h physical pixels while everything
+        # else stays logical, causing bugs to spawn off-screen on scaled displays.
         display = Gdk.Display.get_default()
         monitor = display.get_primary_monitor()
         geom    = monitor.get_geometry()
-        scale   = monitor.get_scale_factor()
-        self.screen_w = geom.width  * scale
-        self.screen_h = geom.height * scale
+        self.screen_w = geom.width
+        self.screen_h = geom.height
         self.move(geom.x, geom.y)
         self.resize(geom.width, geom.height)
 
@@ -88,15 +109,12 @@ class OverlayWindow(Gtk.Window):
     # Everything else passes straight through to whatever is underneath.
 
     def _update_input_shape(self):
+        # Circular region matches the circular near-miss detection geometry exactly,
+        # so no corner areas are silently swallowed or inadvertently passed through.
         region = cairo.Region()
         for bug in self._bugs:
             if bug.is_alive():
-                r = bug.NEAR_MISS_RADIUS + 5
-                rect = cairo.RectangleInt(
-                    x=int(bug.x - r), y=int(bug.y - r),
-                    width=int(r * 2), height=int(r * 2),
-                )
-                region.union(cairo.Region(rect))
+                region.union(_circle_region(bug.x, bug.y, bug.NEAR_MISS_RADIUS))
         self.input_shape_combine_region(region)
 
     # -----------------------------------------------------------------------
