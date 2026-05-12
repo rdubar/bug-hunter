@@ -4,9 +4,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var window: OverlayWindow!
     private var bugView: BugView!
     private var controller: BugController!
-    private var eventMonitor: Any?
     private var statusItem: NSStatusItem?
-    private var accessibilityPoller: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)  // no Dock icon
@@ -15,7 +13,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupStatusItem()
         SoundManager.shared.preload()
         controller = BugController(view: bugView)
-        setupEventMonitor()
+        bugView.onHit = { [weak self] point in self?.controller.handleClick(at: point) }
         controller.start()
     }
 
@@ -55,55 +53,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func addBug()    { controller.addBug() }
     @objc private func squishAll() { controller.squishAll() }
     @objc private func quitApp()   { NSApp.terminate(nil) }
-
-    // MARK: - Global mouse monitor
-
-    private func setupEventMonitor() {
-        if AXIsProcessTrusted() {
-            installMonitor()
-        } else {
-            showAccessibilityPrompt()
-            // Poll until user grants access (they'll need to relaunch, but
-            // some macOS versions grant it live — handle both)
-            accessibilityPoller = Timer.scheduledTimer(
-                withTimeInterval: 2.0, repeats: true
-            ) { [weak self] timer in
-                if AXIsProcessTrusted() {
-                    self?.installMonitor()
-                    timer.invalidate()
-                    self?.accessibilityPoller = nil
-                }
-            }
-        }
-    }
-
-    private func installMonitor() {
-        eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] _ in
-            self?.controller.handleClick(at: NSEvent.mouseLocation)
-        }
-    }
-
-    private func showAccessibilityPrompt() {
-        let alert = NSAlert()
-        alert.messageText = "Bug Hunter needs Accessibility access"
-        alert.informativeText = """
-            To squish the bugs, grant Accessibility permission, then relaunch Bug Hunter.
-
-            System Settings → Privacy & Security → Accessibility
-            """
-        alert.addButton(withTitle: "Open System Settings")
-        alert.addButton(withTitle: "Later")
-        NSApp.activate(ignoringOtherApps: true)
-        if alert.runModal() == .alertFirstButtonReturn {
-            let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
-            NSWorkspace.shared.open(url)
-        }
-    }
-
-    // MARK: - Cleanup
-
-    func applicationWillTerminate(_ notification: Notification) {
-        accessibilityPoller?.invalidate()
-        if let m = eventMonitor { NSEvent.removeMonitor(m) }
-    }
 }

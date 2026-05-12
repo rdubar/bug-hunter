@@ -12,7 +12,8 @@ class OverlayWindow: NSWindow {
         backgroundColor = .clear
         isOpaque = false
         hasShadow = false
-        ignoresMouseEvents = true      // click-through; global monitor handles hits
+        // ignoresMouseEvents stays false — BugView.hitTest returns nil for non-bug clicks,
+        // causing them to pass through to the desktop without needing Accessibility permission.
         level = .screenSaver           // above all app windows; change to .floating for softer mode
         collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
         isReleasedWhenClosed = false
