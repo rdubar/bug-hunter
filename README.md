@@ -5,62 +5,38 @@ A cockroach crawls around your screen over all your windows. Try to squish it.
 
 - **Click directly on the bug** → squish sound + splat + respawn somewhere else
 - **Click near it but miss** → miss sound
-- **Right-click the tray/menu bar icon** → Add Bug / Squish All / Quit
+- **Menu bar icon** (🪲) → Add Bug / Squish All / Quit
 
 Runs on **macOS** (Swift + AppKit) and **Linux** (Python + GTK3).
+
+> **Linux users:** [jump to Linux instructions ↓](#linux)
 
 ---
 
 ## macOS
 
-### Requirements
+### Download and run
 
-- macOS 13 Ventura or later
-- Xcode Command Line Tools
+**[Download BugHunter for Mac →](https://github.com/rdubar/bug-hunter/releases/latest)**
+
+1. Download `BugHunter-mac.zip` from the latest release
+2. Unzip and drag `BugHunter.app` to your Applications folder
+3. Double-click to run — look for 🪲 in the menu bar
+
+**First launch only:** macOS will warn about an unsigned app. Right-click the app icon and choose **Open**, then click Open again in the dialog. You won't need to do this again.
+
+No Accessibility permission required.
+
+### Build from source
+
+Requires macOS 13+ and Xcode Command Line Tools:
 
 ```bash
 xcode-select --install   # if not already installed
-```
-
-### Build & run
-
-```bash
 cd mac
 ./build.sh
 open BugHunter.app
 ```
-
-First launch: macOS may block an unsigned app. Right-click the app and choose **Open**,
-or clear the quarantine flag yourself:
-
-```bash
-xattr -d com.apple.quarantine mac/BugHunter.app
-open mac/BugHunter.app
-```
-
-### Accessibility permission (required to squish bugs)
-
-Bug Hunter uses a global mouse monitor so the overlay window can be fully click-through
-while still detecting clicks on the bug. macOS requires **Accessibility** access for this.
-
-A prompt appears on first launch. If you missed it:
-
-> **System Settings → Privacy & Security → Accessibility → Bug Hunter → ON**
-
-Then relaunch. Without this the bug is immortal.
-
-**Privacy note:** the monitor only reads the mouse location of each click — it does
-not log keystrokes, record cursor movement, or make any network calls. Everything
-runs locally. The source is here for you to verify.
-
-**Note for distributors:** the current bundle ID (`com.bughunter.app`) is a
-placeholder. For signed/notarized releases, replace it with your own reverse-DNS
-identifier and sign with a Developer ID certificate before distributing outside
-this repo.
-
-### Tray icon
-
-Look for 🪲 in the menu bar. Click it for Add Bug / Squish All / Quit.
 
 ---
 
@@ -130,13 +106,13 @@ Both versions show a borderless, transparent, always-on-top overlay window cover
 the full screen. The bug is drawn on it; everything else is transparent so your real
 windows stay usable.
 
-**macOS:** the window has `ignoresMouseEvents = true`, and a global `NSEvent` monitor
-catches every left-click on the system. This requires Accessibility permission.
-Clicks are processed entirely on-device; no data is logged or transmitted.
+**macOS:** `BugView.hitTest` returns the view only when a click lands near a living
+bug — otherwise it returns `nil`, and AppKit lets the click fall through to whatever
+is beneath. No special permissions needed.
 
 **Linux:** GTK3 *input shapes* tell the compositor to route pointer events only to the
-circular region around each bug. Everything else passes through with zero system
-permissions required — the OS handles the routing.
+circular region around each bug. Everything else passes through — the OS handles the
+routing.
 
 ### Animation
 
@@ -155,11 +131,11 @@ bug-hunter/
 ├── mac/
 │   ├── Sources/
 │   │   ├── main.swift          Entry point
-│   │   ├── AppDelegate.swift   Setup, menu bar icon, accessibility prompt
+│   │   ├── AppDelegate.swift   Setup, menu bar icon
 │   │   ├── OverlayWindow.swift Transparent borderless NSWindow
 │   │   ├── Bug.swift           State machine + movement AI
 │   │   ├── BugRenderer.swift   NSBezierPath drawing
-│   │   ├── BugView.swift       Full-screen NSView
+│   │   ├── BugView.swift       Full-screen NSView, hit testing
 │   │   ├── BugController.swift 60 fps timer, click dispatch
 │   │   └── SoundManager.swift  NSSound wrapper
 │   ├── Resources/
