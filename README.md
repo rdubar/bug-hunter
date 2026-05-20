@@ -23,7 +23,9 @@ Runs on **macOS** (Swift + AppKit) and **Linux** (Python + GTK3).
 2. Unzip and drag `BugHunter.app` to your Applications folder
 3. Double-click to run — look for 🪲 in the menu bar
 
-**First launch only:** macOS will warn about an unsigned app. Right-click the app icon and choose **Open**, then click Open again in the dialog. You won't need to do this again.
+The release build is signed with a Developer ID certificate and notarized by
+Apple, so macOS can verify that the downloaded app is from the registered
+developer and was not damaged after packaging.
 
 No Accessibility permission required.
 
@@ -34,8 +36,20 @@ Requires macOS 13+ and Xcode Command Line Tools:
 ```bash
 xcode-select --install   # if not already installed
 cd mac
-./build.sh
+./build.sh --package
 open BugHunter.app
+```
+
+By default, the build uses an ad-hoc signature suitable for local testing. For a
+public macOS download, build with a Developer ID certificate, notarize, staple,
+and re-package the app before uploading the zip:
+
+```bash
+CODESIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./build.sh --package
+xcrun notarytool submit ../BugHunter-mac.zip --keychain-profile "bug-hunter-notary" --wait
+xcrun stapler staple BugHunter.app
+cd ..
+ditto -c -k --keepParent mac/BugHunter.app BugHunter-mac.zip
 ```
 
 ---
@@ -168,8 +182,9 @@ Only the platform layer (window, drawing surface, sound player) differs.
 
 ## Assets & open-source attribution
 
-**Graphics:** all sprites are drawn procedurally at runtime using `NSBezierPath`
-(macOS) and Cairo (Linux). No image files are included or distributed.
+**Graphics:** bug sprites are drawn procedurally at runtime using `NSBezierPath`
+(macOS) and Cairo (Linux). The macOS app icon is included as a generated PNG and
+`.icns` asset.
 
 **Sounds (macOS):** uses Apple's built-in system sounds via `NSSound(named:)`
 (`Basso`, `Tink`). These are part of macOS and require no attribution.
@@ -190,7 +205,5 @@ is typically provided under CC0 or LGPL; check your distro's package for exact t
 
 ## Credits
 
-Made at **Alphapet Tech Days 2026**.
-
 Built with Swift + AppKit (macOS) and Python + GTK3 (Linux).
-Inspired by [Neko](https://en.wikipedia.org/wiki/Neko_(software)) and XPenguins.
+Inspired by [Neko](https://en.wikipedia.org/wiki/Neko_(software)), XPenguins, and **Alphapet Tech Days 2026**.

@@ -1,6 +1,8 @@
 # macOS build output
+/BugHunter.app
 mac/BugHunter.app
 mac/*.app
+mac/Resources/*.iconset/
 
 # macOS system files
 .DS_Store
@@ -31,3 +33,5 @@ build/
 .idea/
 *.swp
 *~
+
+.env
